@@ -20,9 +20,12 @@ If you find any _bugs_ or you got a _feature_ you'd need, create a pr and I'll t
 
 The available **make** flags are:
 
-´make install´ - will build and install the binary to your **/usr/local/bin** folder
-´make run´ - compiles and runs the binary with the **help** flag
-´make build´ - build the binary and do nothing after
+`make install` - will build and install the binary to your **/usr/local/bin** folder
+
+`make run`- compiles and runs the binary with the **help** flag
+
+`make build` - build the binary and do nothing after
+
 
 How to use **audic**:
 
