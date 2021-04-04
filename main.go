@@ -108,7 +108,7 @@ func argparser() (audio, error) {
 		} else {
 			ad.Percent = defaultVolume
 		}
-	case "set", "-s":
+	case "set", "--set", "-s":
 		ad.Action = "set"
 		if inRange(1, len(argv)) {
 			ad.Percent, err = strconv.Atoi(argv[1])
@@ -118,9 +118,9 @@ func argparser() (audio, error) {
 		} else {
 			return ad, fmt.Errorf("you need to specify a volume to set")
 		}
-	case "mute", "-m":
+	case "mute", "--mute", "-m":
 		ad.Action = "mute"
-	case "unmute", "-u":
+	case "unmute", "--unmute", "-u":
 		ad.Action = "unmute"
 	case "help", "--help", "-h":
 		help()
