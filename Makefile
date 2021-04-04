@@ -7,7 +7,7 @@ INST       = /usr/local/bin
 
 .PHONY: all clean build run install
 
-all: clean run
+all: run
 
 clean:
 	rm -rf $(BUILD_PATH)
