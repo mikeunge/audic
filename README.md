@@ -45,4 +45,3 @@ The available **make** flags are:
     -   Mute the audio
 -   unmute ( --unmute / -u )
     -   Unmute the audio
-    -   Unmute the audio
