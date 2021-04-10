@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,7 +13,7 @@ import (
 const defaultVolume = 10
 const appName = "audio-controller"
 const appNameShort = "audic"
-const version = "0.1"
+const version = "0.1.1"
 
 type audio struct {
 	Action  string
@@ -27,9 +28,29 @@ func help() {
 	fmt.Println("  -     up N\t Increase the volume by N percent")
 	fmt.Println("  -   down N\t Decrease the volume by N percent")
 	fmt.Println("  -    set N\t Set the volume to N percent")
-	fmt.Println("  -   mute\t Mute the audio")
-	fmt.Println("  - unmute\t Unmute the audio")
+	fmt.Println("  - volume\t Show the current volume")
+	fmt.Println("  -   mute\t Mute/Unmute the audio")
 	fmt.Println("  -   help\t Show this message and exit")
+}
+
+// volume - get the current volume
+func volume() (int, error) {
+	command := "pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(( $SINK + 1 )) | tail -n 1 | sed -e 's,.* \\([0-9][0-9]*\\)%.*,\\1,'"
+	cmd := exec.Command("bash", "-c", command)
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		return -1, fmt.Errorf(fmt.Sprint(err) + ": " + stderr.String())
+	}
+	tmp_vol := out.String()[:len(out.String())-1]
+	vol, err := strconv.Atoi(tmp_vol)
+	if err != nil {
+		return -1, err
+	}
+	return vol, nil
 }
 
 // changeVolume - execute the command so pluseaudio can increase/decrease or set the volume
@@ -40,32 +61,32 @@ func changeVolume(ad audio) error {
 		cmd := exec.Command("pactl", "--", "set-sink-volume", "0", "+"+percent)
 		err := cmd.Run()
 		if err != nil {
-			return fmt.Errorf(err.Error())
+			return err
 		}
 	case "decrease":
 		cmd := exec.Command("pactl", "--", "set-sink-volume", "0", "-"+percent)
 		err := cmd.Run()
 		if err != nil {
-			return fmt.Errorf(err.Error())
+			return err
 		}
 	case "set":
 		cmd := exec.Command("pactl", "--", "set-sink-volume", "0", percent)
 		err := cmd.Run()
 		if err != nil {
-			return fmt.Errorf(err.Error())
+			return err
 		}
 	case "mute":
-		cmd := exec.Command("pactl", "--", "set-sink-mute", "0", "1")
+		cmd := exec.Command("pactl", "--", "set-sink-mute", "0", "toggle")
 		err := cmd.Run()
 		if err != nil {
-			return fmt.Errorf(err.Error())
+			return err
 		}
-	case "unmute":
-		cmd := exec.Command("pactl", "--", "set-sink-mute", "0", "0")
-		err := cmd.Run()
+	case "volume":
+		vol, err := volume()
 		if err != nil {
-			return fmt.Errorf(err.Error())
+			return err
 		}
+		fmt.Printf("Volume: %d\n", vol)
 	}
 	return nil
 }
@@ -120,8 +141,8 @@ func argparser() (audio, error) {
 		}
 	case "mute", "--mute", "-m":
 		ad.Action = "mute"
-	case "unmute", "--unmute", "-u":
-		ad.Action = "unmute"
+	case "volume", "--volume", "-v":
+		ad.Action = "volume"
 	case "help", "--help", "-h":
 		help()
 		os.Exit(0)
