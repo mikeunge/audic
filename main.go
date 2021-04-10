@@ -35,6 +35,7 @@ func help() {
 
 // volume - get the current volume
 func volume() (int, error) {
+	// this is a weird way of executing a command but it's the only way this pipe works
 	command := "pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(( $SINK + 1 )) | tail -n 1 | sed -e 's,.* \\([0-9][0-9]*\\)%.*,\\1,'"
 	cmd := exec.Command("bash", "-c", command)
 	var out bytes.Buffer
