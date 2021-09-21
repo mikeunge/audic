@@ -9,48 +9,47 @@ import (
 	utils "github.com/mikeunge/audic/pkg/utils"
 )
 
-type Audio struct {
+type Settings struct {
 	Action  string
 	Percent int
 	Sink 	int
 }
 
-// GetVolume - get the current volume
-func GetVolume() (int, error) {
+// getVolume - get the current volume
+func getVolume(s *Settings) (string, error) {
 	err := utils.CmdExists("pactl")
 	if err != nil {
-		return -1, fmt.Errorf("command 'pactl' does not exist")
+		return "", fmt.Errorf("command 'pactl' does not exist")
 	}
-	sink := "1"	// todo: pass the sink to use
+
 	// the command gets all the available sinks, gets the volume from each one, then we get the sink WE want, after that we cleanup the string (sed) so we ONLY get the volume and not the text with the volume
-	command := "pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(( $SINK + "+sink+" )) | tail -n 1 | sed -e 's,.* \\([0-9][0-9]*\\)%.*,\\1,'"
+	command := "pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(( $SINK + "+ strconv.Itoa(s.Sink) +" )) | tail -n 1 | sed -e 's,.* \\([0-9][0-9]*\\)%.*,\\1,'"
 	cmd := exec.Command("bash", "-c", command)
+
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
+
 	err = cmd.Run()
 	if err != nil {
-		return -1, fmt.Errorf(fmt.Sprint(err) + ": " + stderr.String())
+		return "", fmt.Errorf(fmt.Sprint(err) + ": " + stderr.String())
 	}
-	tmp_vol := out.String()[:len(out.String())-1]
-	vol, err := strconv.Atoi(tmp_vol)
-	if err != nil {
-		return -1, err
-	}
+
+	vol := out.String()[:len(out.String())-1]
 	return vol, nil
 }
 
 // ChangeVolume - execute the command so pluseaudio can increase/decrease or set the volume
-func ChangeVolume(ad Audio) error {
-	percent := strconv.Itoa(ad.Percent) + "%"
-	switch ad.Action {
+func ChangeVolume(s *Settings) error {
+	percent := strconv.Itoa(s.Percent) + "%"
+	switch s.Action {
 	case "increase":
 		err := utils.CmdExists("pactl")
 		if err != nil {
 			return fmt.Errorf("command 'pactl' does not exist")
 		}
-		cmd := exec.Command("pactl", "--", "set-sink-volume", "0", "+"+percent)
+		cmd := exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), "+"+percent)
 		err = cmd.Run()
 		if err != nil {
 			return err
@@ -60,7 +59,7 @@ func ChangeVolume(ad Audio) error {
 		if err != nil {
 			return fmt.Errorf("command 'pactl' does not exist")
 		}
-		cmd := exec.Command("pactl", "--", "set-sink-volume", "0", "-"+percent)
+		cmd := exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), "-"+percent)
 		err = cmd.Run()
 		if err != nil {
 			return err
@@ -70,27 +69,27 @@ func ChangeVolume(ad Audio) error {
 		if err != nil {
 			return fmt.Errorf("command 'pactl' does not exist")
 		}
-		cmd := exec.Command("pactl", "--", "set-sink-volume", "0", percent)
+		cmd := exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), percent)
 		err = cmd.Run()
 		if err != nil {
 			return err
 		}
-	case "mute":
+	case "toggle":
 		err := utils.CmdExists("pactl")
 		if err != nil {
 			return fmt.Errorf("command 'pactl' does not exist")
 		}
-		cmd := exec.Command("pactl", "--", "set-sink-mute", "0", "toggle")
+		cmd := exec.Command("pactl", "set-sink-mute", strconv.Itoa(s.Sink), "toggle")
 		err = cmd.Run()
 		if err != nil {
 			return err
 		}
-	case "volume":
-		vol, err := GetVolume()
+	case "show":
+		vol, err := getVolume(s)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Volume: %d\n", vol)
+		fmt.Printf("Volume: %s%%\n", vol)
 	case "gui":
 		err := utils.CmdExists("pavucontrol")
 		if err != nil {
