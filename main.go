@@ -14,7 +14,7 @@ import (
 const defaultVolume = 10
 const appName = "audio-controller"
 const appNameShort = "audic"
-const version = "0.1.2"
+const version = "0.1.3"
 
 
 // help - print useful information
