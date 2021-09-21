@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	_ "github.com/mikeunge/audio-controller/pkg/utils"
 )
 
 // Specify the default increse/decrease volume.
