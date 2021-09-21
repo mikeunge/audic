@@ -12,7 +12,7 @@ import (
 // Specify the default increse/decrease volume.
 const defaultVolume = 10
 const appName = "audic"
-const version = "0.1.3.1"
+const version = "0.1.3.2"
 
 func parser(s *audio.Settings) error {
 	parser := argparse.NewParser(appName, "The easiest way to control your audio.")
