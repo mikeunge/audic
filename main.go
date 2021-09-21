@@ -36,11 +36,14 @@ func help() {
 
 // cmdExists - make sure a command exists before executing it
 func cmdExists(cmdlet string) error {
-	cmd := exec.Command("which", cmdlet)
+	cmd := exec.Command("which", cmdlet)	// we use `which` for the probing
 	var out bytes.Buffer
 	var stderr bytes.Buffer
+	// redirect the stdout and stderr to the created bytebuffer.
+	// this ensures the user doesn't see anything from the command probing.
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
+	// run the command and check for errors.
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf(fmt.Sprint(err) + ": " + stderr.String())
@@ -153,8 +156,9 @@ func argparser() (audio, error) {
 
 	argv := os.Args[1:]
 	if len(argv) <= 0 {
-		return ad, fmt.Errorf("too few arguments provided")
+		return ad, fmt.Errorf("too few arguments provided, try audic --help for more information")
 	}
+
 	switch strings.ToLower(argv[0]) {
 	case "up", "--increase", "-i":
 		ad.Action = "increase"
