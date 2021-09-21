@@ -76,7 +76,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = audio.ChangeVolume(&s)
+	err = audio.Controller(&s)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 		os.Exit(1)

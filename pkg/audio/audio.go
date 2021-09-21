@@ -2,7 +2,6 @@ package audio
 
 import (
 	"fmt"
-	"bytes"
 	"os/exec"
 	"strconv"
 
@@ -15,70 +14,71 @@ type Settings struct {
 	Sink 	int
 }
 
-// getVolume - get the current volume
-func getVolume(s *Settings) (string, error) {
-	err := utils.CmdExists("pactl")
-	if err != nil {
-		return "", fmt.Errorf("command 'pactl' does not exist")
-	}
 
+// sinkExists :: check if the provided sink exists or not
+func sinkExists(sink int) bool {
+	cmd := "pactl list sinks | grep 'Sink #"+ strconv.Itoa(sink) +"'"
+	out, err := exec.Command("bash", "-c", cmd).Output()
+	// Check if we didn't get any errors and if the grep output isn't empty.
+	if err != nil || string(out) == "" {
+		return false
+	}
+	return true
+}
+
+
+// getVolume :: get the current volume
+func getVolume(s *Settings) (string, error) {
 	// the command gets all the available sinks, gets the volume from each one, then we get the sink WE want, after that we cleanup the string (sed) so we ONLY get the volume and not the text with the volume
 	command := "pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(( $SINK + "+ strconv.Itoa(s.Sink) +" )) | tail -n 1 | sed -e 's,.* \\([0-9][0-9]*\\)%.*,\\1,'"
-	cmd := exec.Command("bash", "-c", command)
-
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-
-	err = cmd.Run()
+	out, err := exec.Command("bash", "-c", command).Output()
 	if err != nil {
-		return "", fmt.Errorf(fmt.Sprint(err) + ": " + stderr.String())
+		return "", err
 	}
-
-	vol := out.String()[:len(out.String())-1]
+	vol := string(out)[:len(string(out))-1]
 	return vol, nil
 }
 
-// ChangeVolume - execute the command so pluseaudio can increase/decrease or set the volume
-func ChangeVolume(s *Settings) error {
+
+// changeVolume :: as the name suggests, this function changes the volume according to the settings.Action
+func changeVolume(s *Settings) error {
+	var cmd exec.Cmd
 	percent := strconv.Itoa(s.Percent) + "%"
+
 	switch s.Action {
 	case "increase":
-		err := utils.CmdExists("pactl")
-		if err != nil {
-			return fmt.Errorf("command 'pactl' does not exist")
-		}
-		cmd := exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), "+"+percent)
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
+		cmd = *exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), "+"+percent)
 	case "decrease":
-		err := utils.CmdExists("pactl")
-		if err != nil {
-			return fmt.Errorf("command 'pactl' does not exist")
-		}
-		cmd := exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), "-"+percent)
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
+		cmd = *exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), "-"+percent)
 	case "set":
-		err := utils.CmdExists("pactl")
-		if err != nil {
-			return fmt.Errorf("command 'pactl' does not exist")
-		}
-		cmd := exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), percent)
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
+		cmd = *exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), percent)
+	default:
+		return fmt.Errorf("action was not found, aborting")
+	}
+
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+
+// Controller :: decide what to do and take action accordingly
+func Controller(s *Settings) error {
+	// check if needed (pactl) command exists
+	err := utils.CmdExists("pactl")
+	if err != nil {
+		return fmt.Errorf("command 'pactl' does not exist")
+	}
+
+	// make sure the requested sink exists
+	if !sinkExists(s.Sink) {
+		return fmt.Errorf("provided sink does not exist")
+	}
+
+	switch s.Action {
 	case "toggle":
-		err := utils.CmdExists("pactl")
-		if err != nil {
-			return fmt.Errorf("command 'pactl' does not exist")
-		}
 		cmd := exec.Command("pactl", "set-sink-mute", strconv.Itoa(s.Sink), "toggle")
 		err = cmd.Run()
 		if err != nil {
@@ -98,6 +98,11 @@ func ChangeVolume(s *Settings) error {
 		cmd := exec.Command("pavucontrol")
 		fmt.Println("Press Ctrl+C to exit pavucontrol")
 		err = cmd.Run()
+		if err != nil {
+			return err
+		}
+	default:
+		err := changeVolume(s)
 		if err != nil {
 			return err
 		}
