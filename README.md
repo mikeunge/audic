@@ -13,8 +13,8 @@ If you find any _bugs_ or you got a _feature_ you'd need, create a pr and I'll t
 
 ### Prerequisite
 
--   PulseAudio + pactl
--   Golang
+- PulseAudio + pactl
+- Golang
 
 ### Build / Install
 
@@ -26,22 +26,33 @@ The available **make** flags are:
 
 `make build` - build the binary and do nothing after
 
+### How to use **audic**
 
-### How to use **audic**:
+_usage_: audic \<Command> [-h|--help]
 
--   audic set 100 - sets the audio volume to 100%
--   audic up - increases the audio volume by 10% (_this is the fixed default increase_)
--   audic up 25 - increases the audio volume by 25% (_this overrides the default increase_)
+Commands:
 
-### Available arguments
+- volume  Set/Increase/Decrease the volume
+- toggle  Toggle the audio (mute/unmute)
+- gui     Open a GUI (requires pavucontrol)
+- about   Display information about the project
 
--   up ( --increase / -i )
-    -   Increase the volume by N %
--   down ( --decrease / -d )
-    -   Decrease the volume by N %
--   set ( --set / -s )
-    -   Set the volume N %
--   mute ( --mute / -m )
-    -   Mute the audio
--   unmute ( --unmute / -u )
-    -   Unmute the audio
+### Subcommands
+
+_usage_: audic volume [-h|--help] [-S|--sink \<integer>] [-i|--increase \<integer>]
+             [-d|--decrease \<integer>] [-s|--set \<integer>] [-m|--show]
+
+Arguments:
+
+- -h --help      Print help information
+- -S --sink      Set the sink you want to control. Default: -1
+- -i --increase  Increase the volume by N
+- -d --decrease  Decrease the volume by N
+- -s --set       Set the volume to N
+- -m --show      Show the volume
+
+### Features
+
+`audic` works on _all_ Linux distributions where _pulseaudio_ is installed.
+
+It's equiped with a "_sink_" cache, so you don't have to type it everytime.
