@@ -5,64 +5,16 @@ import (
 	"os/exec"
 	"strconv"
 
-	utils "github.com/mikeunge/audic/pkg/utils"
+	"github.com/mikeunge/audic/pkg/utils"
 )
 
 type Settings struct {
-	Action  string
-	Percent int
-	Sink 	int
+	Action   string
+	Percent  int
+	Sink     int
+	SetSink  bool
+	SinkPath string
 }
-
-
-// sinkExists :: check if the provided sink exists or not
-func sinkExists(sink int) bool {
-	cmd := "pactl list sinks | grep 'Sink #"+ strconv.Itoa(sink) +"'"
-	out, err := exec.Command("bash", "-c", cmd).Output()
-	// Check if we didn't get any errors and if the grep output isn't empty.
-	if err != nil || string(out) == "" {
-		return false
-	}
-	return true
-}
-
-
-// getVolume :: get the current volume
-func getVolume(s *Settings) (string, error) {
-	// the command gets all the available sinks, gets the volume from each one, then we get the sink WE want, after that we cleanup the string (sed) so we ONLY get the volume and not the text with the volume
-	command := "pactl list sinks | grep '^[[:space:]]Volume:' | head -n $(( $SINK + "+ strconv.Itoa(s.Sink) +" )) | tail -n 1 | sed -e 's,.* \\([0-9][0-9]*\\)%.*,\\1,'"
-	out, err := exec.Command("bash", "-c", command).Output()
-	if err != nil {
-		return "", err
-	}
-	vol := string(out)[:len(string(out))-1]
-	return vol, nil
-}
-
-
-// changeVolume :: as the name suggests, this function changes the volume according to the settings.Action
-func changeVolume(s *Settings) error {
-	var cmd exec.Cmd
-	percent := strconv.Itoa(s.Percent) + "%"
-
-	switch s.Action {
-	case "increase":
-		cmd = *exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), "+"+percent)
-	case "decrease":
-		cmd = *exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), "-"+percent)
-	case "set":
-		cmd = *exec.Command("pactl", "set-sink-volume", strconv.Itoa(s.Sink), percent)
-	default:
-		return fmt.Errorf("action was not found, aborting")
-	}
-
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 
 // Controller :: decide what to do and take action accordingly
 func Controller(s *Settings) error {
@@ -95,8 +47,8 @@ func Controller(s *Settings) error {
 		if err != nil {
 			return fmt.Errorf("command 'pavucontrol' does not exist")
 		}
-		cmd := exec.Command("pavucontrol")
 		fmt.Println("Press Ctrl+C to exit pavucontrol")
+		cmd := exec.Command("pavucontrol")
 		err = cmd.Run()
 		if err != nil {
 			return err
@@ -109,4 +61,3 @@ func Controller(s *Settings) error {
 	}
 	return nil
 }
-
