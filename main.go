@@ -10,12 +10,15 @@ import (
 )
 
 const (
-	appName = "audic"
-	version = "0.1.3.3"
+	appName    = "audic"
+	appVersion = "0.1.3.3"
+	appRelease = "@nightly"
+	appRepo    = "github.com/mikeunge/audic"
+	appDev     = "mikeunge"
 )
 
 func parser(settings *audio.Settings) error {
-	parser := argparse.NewParser(appName+" - "+version, "The easiest way to control your audio.")
+	parser := argparse.NewParser(appName, "The easiest way to control your audio.")
 
 	// Parser options
 	volume := parser.NewCommand("volume", "Set/Increase/Decrease the volume")
@@ -27,6 +30,7 @@ func parser(settings *audio.Settings) error {
 	toggle := parser.NewCommand("toggle", "Toggle the audio (mute/unmute)")
 	sinkT := toggle.Int("S", "sink", &argparse.Options{Required: false, Help: "Set the sink you want to control", Default: -1})
 	gui := parser.NewCommand("gui", "Open a GUI (requires pavucontrol)")
+	about := parser.NewCommand("about", "Display information about the project")
 
 	// Parse the input
 	err := parser.Parse(os.Args)
@@ -44,6 +48,14 @@ func parser(settings *audio.Settings) error {
 	if gui.Happened() {
 		settings.Action = "gui"
 		return nil
+	}
+
+	if about.Happened() {
+		fmt.Printf("%s - v%s %s\n\n", appName, appVersion, appRelease)
+		fmt.Printf("Repository: %s\n", appRepo)
+		fmt.Printf("Developed:  %s\n\n", appDev)
+		fmt.Print(parser.Usage(""))
+		os.Exit(0)
 	}
 
 	// parse if volume command was set
