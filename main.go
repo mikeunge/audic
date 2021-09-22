@@ -11,7 +11,7 @@ import (
 
 const (
 	appName = "audic"
-	version = "0.1.3.2"
+	version = "0.1.3.3"
 )
 
 func parser(settings *audio.Settings) error {
