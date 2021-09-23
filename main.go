@@ -11,7 +11,7 @@ import (
 
 const (
 	appName    = "audic"
-	appVersion = "0.1.4"
+	appVersion = "0.1.5"
 	appRelease = "@release"
 	appRepo    = "github.com/mikeunge/audic"
 	appDev     = "mikeunge"
