@@ -12,7 +12,7 @@ import (
 const (
 	appName    = "audic"
 	appVersion = "0.1.3.3"
-	appRelease = "@nightly"
+	appRelease = "@release"
 	appRepo    = "github.com/mikeunge/audic"
 	appDev     = "mikeunge"
 )

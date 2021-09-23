@@ -50,7 +50,7 @@ func WriteSink(settings *Settings) error {
 	data := make([]byte, 2)
 	binary.LittleEndian.PutUint16(data, uint16(settings.Sink))
 
-	err := ioutil.WriteFile(settings.SinkPath, data, 0777)
+	err := ioutil.WriteFile(settings.SinkPath, data, 0664)
 	if err != nil {
 		return err
 	}
