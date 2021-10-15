@@ -30,6 +30,17 @@ func SinkVal(val *int, settings *Settings) {
 	settings.Sink = sink
 }
 
+// listSink :: list all available sinks 
+func listSink() (string, error) {
+	cmd := "pactl list sinks | grep 'Sink #'"
+	out, err := exec.Command("bash", "-c", cmd).Output()
+	// Check if we didn't get any errors.
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
 // sinkExists :: check if the provided sink exists or not
 func sinkExists(sink int) bool {
 	cmd := "pactl list sinks | grep 'Sink #" + strconv.Itoa(sink) + "'"

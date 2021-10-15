@@ -24,6 +24,16 @@ func Controller(s *Settings) error {
 		return fmt.Errorf("command 'pactl' does not exist")
 	}
 
+    // List all available sinks.
+	if s.Action == "listSink" {
+		sinks, err := listSink()
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Available sinks:\n%s", sinks)
+        return nil
+    }
+
 	// make sure the requested sink exists
 	if !sinkExists(s.Sink) {
 		return fmt.Errorf("provided sink does not exist")

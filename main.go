@@ -31,6 +31,7 @@ func parser(settings *audio.Settings) error {
 	sinkT := toggle.Int("S", "sink", &argparse.Options{Required: false, Help: "Set the sink you want to control", Default: -1})
 	gui := parser.NewCommand("gui", "Open a GUI (requires pavucontrol)")
 	about := parser.NewCommand("about", "Display information about the project")
+	listSinks := parser.NewCommand("list", "List available sinks")
 
 	// Parse the input
 	err := parser.Parse(os.Args)
@@ -47,6 +48,11 @@ func parser(settings *audio.Settings) error {
 
 	if gui.Happened() {
 		settings.Action = "gui"
+		return nil
+	}
+
+	if listSinks.Happened() {
+		settings.Action = "listSink"
 		return nil
 	}
 
