@@ -32,7 +32,7 @@ func SinkVal(val *int, settings *Settings) {
 
 // listSink :: list all available sinks 
 func listSink() (string, error) {
-	cmd := "pactl list sinks | grep 'Sink #'"
+	cmd := "pactl list sinks"
 	out, err := exec.Command("bash", "-c", cmd).Output()
 	// Check if we didn't get any errors.
 	if err != nil {
