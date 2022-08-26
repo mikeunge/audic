@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 // SinkVal :: check the value of provided sink.
@@ -30,15 +31,25 @@ func SinkVal(val *int, settings *Settings) {
 	settings.Sink = sink
 }
 
-// listSink :: list all available sinks 
+// listSink :: list all available sinks
 func listSink() (string, error) {
-	cmd := "pactl list sinks | grep 'Sink #'"
+	cmd := "pactl list sinks | grep -wi '^Sink\\|^[[:space:]]Description'"
 	out, err := exec.Command("bash", "-c", cmd).Output()
-	// Check if we didn't get any errors.
 	if err != nil {
 		return "", err
 	}
-	return string(out), nil
+	outArray := strings.Split(string(out), "\n")
+	list := []string{}
+	for i := 0; i < len(outArray); i++ {
+		// check if we don't run into a "out-of-range" error && make sure we aren't on the 2nd item (aka. description)
+		if i+1 >= len(outArray) || i%2 != 0 {
+			continue
+		}
+		// format the description - remove whitespace && the word "Description:"
+		formattedDesc := strings.TrimSpace(strings.Split(outArray[i+1], "Description:")[1])
+		list = append(list, fmt.Sprintf("%s: %s\n", outArray[i], formattedDesc))
+	}
+	return strings.Join(list, ""), nil
 }
 
 // sinkExists :: check if the provided sink exists or not
